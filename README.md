@@ -1,9 +1,5 @@
 # super-resolution
-A collection of super-resolution models & algorithms
-
-Detail introduction of each model is in corresponding sub-folds.
-
-Authored by [icpm](https://github.com/icpm)
+Fork of [icpm](https://github.com/icpm)'s repo for testing purposes, lightly refactored
 
 ## Requirement
 - python3.6
