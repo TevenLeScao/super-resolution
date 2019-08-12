@@ -1,5 +1,4 @@
 from __future__ import print_function
-from math import log10
 
 import torch
 import torch.nn as nn
@@ -7,8 +6,7 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
 from trainer import Trainer
-from DBPN.model import DBPN, DBPNS, DBPNLL
-from progress_bar import progress_bar
+from models.DBPN.model import DBPN
 
 
 class DBPNTrainer(Trainer):

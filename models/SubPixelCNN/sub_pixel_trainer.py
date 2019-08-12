@@ -1,21 +1,18 @@
 from __future__ import print_function
-from math import log10
 
 import torch
 import torch.backends.cudnn as cudnn
 
-from FSRCNN.model import Net
-from progress_bar import progress_bar
 from trainer import Trainer
+from models.SubPixelCNN.model import Net
 
 
-class FSRCNNTrainer(Trainer):
+class SubPixelTrainer(Trainer):
     def __init__(self, config, training_loader, testing_loader):
-        super(FSRCNNTrainer, self).__init__(config, training_loader, testing_loader, "fsrcnn")
+        super(SubPixelTrainer, self).__init__(config, training_loader, testing_loader, "sub_pixel")
 
     def build_model(self):
-        self.model = Net(num_channels=1, upscale_factor=self.upscale_factor).to(self.device)
-        self.model.weight_init(mean=0.0, std=0.2)
+        self.model = Net(upscale_factor=self.upscale_factor).to(self.device)
         self.criterion = torch.nn.MSELoss()
         torch.manual_seed(self.seed)
 

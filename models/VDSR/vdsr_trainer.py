@@ -8,7 +8,7 @@ import torchvision.transforms as transforms
 from PIL import Image
 
 from trainer import Trainer
-from VDSR.model import Net
+from models.VDSR.model import Net
 from progress_bar import progress_bar
 
 

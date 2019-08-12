@@ -1,21 +1,19 @@
 from __future__ import print_function
 
-from math import log10
-
 import torch
 import torch.backends.cudnn as cudnn
 
 from trainer import Trainer
-from SubPixelCNN.model import Net
-from progress_bar import progress_bar
+from models.SRCNN.model import Net
 
 
-class SubPixelTrainer(Trainer):
+class SRCNNTrainer(Trainer):
     def __init__(self, config, training_loader, testing_loader):
-        super(SubPixelTrainer, self).__init__(config, training_loader, testing_loader, "sub_pixel")
+        super(SRCNNTrainer, self).__init__(config, training_loader, testing_loader, "srcnn")
 
     def build_model(self):
-        self.model = Net(upscale_factor=self.upscale_factor).to(self.device)
+        self.model = Net(num_channels=1, base_filter=64, upscale_factor=self.upscale_factor).to(self.device)
+        self.model.weight_init(mean=0.0, std=0.01)
         self.criterion = torch.nn.MSELoss()
         torch.manual_seed(self.seed)
 
@@ -25,4 +23,4 @@ class SubPixelTrainer(Trainer):
             self.criterion.cuda()
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[50, 75, 100], gamma=0.5)  # lr decay
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[50, 75, 100], gamma=0.5)
