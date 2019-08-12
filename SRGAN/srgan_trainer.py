@@ -1,36 +1,32 @@
 from __future__ import print_function
 from math import log10
+import os
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 from torchvision.models.vgg import vgg16
+
+from trainer import Trainer
 from SRGAN.model import Generator, Discriminator
 from progress_bar import progress_bar
 
 
-class SRGANTrainer(object):
+class SRGANTrainer(Trainer):
     def __init__(self, config, training_loader, testing_loader):
-        super(SRGANTrainer, self).__init__()
-        self.GPU_IN_USE = torch.cuda.is_available()
-        self.device = torch.device('cuda' if self.GPU_IN_USE else 'cpu')
+        super(SRGANTrainer, self).__init__(config, training_loader, testing_loader, "srgan")
+
+        # SRGAN setup
+        self.epoch_pretrain = 10
+        self.feature_extractor = None
+        self.num_residuals = 16
         self.netG = None
         self.netD = None
-        self.lr = config.lr
-        self.nEpochs = config.nEpochs
-        self.epoch_pretrain = 10
         self.criterionG = None
         self.criterionD = None
         self.optimizerG = None
         self.optimizerD = None
-        self.feature_extractor = None
-        self.scheduler = None
-        self.seed = config.seed
-        self.upscale_factor = config.upscale_factor
-        self.num_residuals = 16
-        self.training_loader = training_loader
-        self.testing_loader = testing_loader
 
     def build_model(self):
         self.netG = Generator(n_residual_blocks=self.num_residuals, upsample_factor=self.upscale_factor, base_filter=64, num_channel=1).to(self.device)
@@ -61,8 +57,8 @@ class SRGANTrainer(object):
         return x.data
 
     def save(self):
-        g_model_out_path = "SRGAN_Generator_model_path.pth"
-        d_model_out_path = "SRGAN_Discriminator_model_path.pth"
+        g_model_out_path = os.path.join(self.out_path, "SRGAN_Generator.pth")
+        d_model_out_path = os.path.join(self.out_path, "SRGAN_Discriminator.pth")
         torch.save(self.netG, g_model_out_path)
         torch.save(self.netD, d_model_out_path)
         print("Checkpoint saved to {}".format(g_model_out_path))

@@ -6,26 +6,16 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
+
 from DRCN.model import Net
 from progress_bar import progress_bar
 from PIL import Image
+from trainer import Trainer
 
 
-class DRCNTrainer(object):
+class DRCNTrainer(Trainer):
     def __init__(self, config, training_loader, testing_loader):
-        super(DRCNTrainer, self).__init__()
-        self.GPU_IN_USE = torch.cuda.is_available()
-        self.device = torch.device('cuda' if self.GPU_IN_USE else 'cpu')
-        self.model = None
-        self.lr = config.lr
-        self.nEpochs = config.nEpochs
-        self.criterion = None
-        self.optimizer = None
-        self.scheduler = None
-        self.seed = config.seed
-        self.upscale_factor = config.upscale_factor
-        self.training_loader = training_loader
-        self.testing_loader = testing_loader
+        super(DRCNTrainer, self).__init__(config, training_loader, testing_loader, "drcn")
 
         # DRCN setup
         self.momentum = 0.9
@@ -81,11 +71,6 @@ class DRCNTrainer(object):
                                             transforms.Resize((target_width, target_height), interpolation=interpolation),
                                             transforms.ToTensor()])
             return transform(data)
-
-    def save(self):
-        model_out_path = "DRCN_model_path.pth"
-        torch.save(self.model, model_out_path)
-        print("Checkpoint saved to {}".format(model_out_path))
 
     def train(self):
         """

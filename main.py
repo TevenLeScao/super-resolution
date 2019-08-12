@@ -1,16 +1,14 @@
-from __future__ import print_function
-
 import argparse
 
 from torch.utils.data import DataLoader
 
-from DBPN.solver import DBPNTrainer
-from DRCN.solver import DRCNTrainer
-from EDSR.solver import EDSRTrainer
-from FSRCNN.solver import FSRCNNTrainer
-from SRCNN.solver import SRCNNTrainer
-from SRGAN.solver import SRGANTrainer
-from SubPixelCNN.solver import SubPixelTrainer
+from DBPN.dbpn_trainer import DBPNTrainer
+from DRCN.drcn_trainer import DRCNTrainer
+from EDSR.edsr_trainer import EDSRTrainer
+from FSRCNN.fsrcnn_trainer import FSRCNNTrainer
+from SRCNN.srcnn_trainer import SRCNNTrainer
+from SRGAN.srgan_trainer import SRGANTrainer
+from SubPixelCNN.sub_pixel_trainer import SubPixelTrainer
 from VDSR.solver import VDSRTrainer
 from dataset.data import get_training_set, get_test_set
 

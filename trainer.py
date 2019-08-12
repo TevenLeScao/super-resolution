@@ -1,19 +1,19 @@
-from __future__ import print_function
-
 from math import log10
+import os
 
 import torch
+import torch.nn as nn
+import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
-from SRCNN.model import Net
 from progress_bar import progress_bar
 
 
-class SRCNNTrainer(object):
-    def __init__(self, config, training_loader, testing_loader):
-        super(SRCNNTrainer, self).__init__()
-        self.CUDA = torch.cuda.is_available()
-        self.device = torch.device('cuda' if self.CUDA else 'cpu')
+# Trainer super-class that the individual model trainers inherit from
+class Trainer(object):
+    def __init__(self, config, training_loader, testing_loader, model_type):
+        self.GPU_IN_USE = torch.cuda.is_available()
+        self.device = torch.device('cuda' if self.GPU_IN_USE else 'cpu')
         self.model = None
         self.lr = config.lr
         self.nEpochs = config.nEpochs
@@ -24,23 +24,15 @@ class SRCNNTrainer(object):
         self.upscale_factor = config.upscale_factor
         self.training_loader = training_loader
         self.testing_loader = testing_loader
+        self.model_type = model_type
+        self.out_path = os.path.join("results/models/", self.model_type)
+        os.makedirs(self.out_path, exist_ok=True)
 
     def build_model(self):
-        self.model = Net(num_channels=1, base_filter=64, upscale_factor=self.upscale_factor).to(self.device)
-        self.model.weight_init(mean=0.0, std=0.01)
-        self.criterion = torch.nn.MSELoss()
-        torch.manual_seed(self.seed)
+        pass
 
-        if self.CUDA:
-            torch.cuda.manual_seed(self.seed)
-            cudnn.benchmark = True
-            self.criterion.cuda()
-
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[50, 75, 100], gamma=0.5)
-
-    def save_model(self):
-        model_out_path = "model_path.pth"
+    def save(self):
+        model_out_path = os.path.join(self.out_path, "model.pth")
         torch.save(self.model, model_out_path)
         print("Checkpoint saved to {}".format(model_out_path))
 
@@ -54,7 +46,7 @@ class SRCNNTrainer(object):
             train_loss += loss.item()
             loss.backward()
             self.optimizer.step()
-            progress_bar(batch_num, len(self.training_loader), 'Loss: %.4f' % (train_loss / (batch_num + 1)))
+            progress_bar(batch_num, len(self.training_loader), 'Loss: %.3f' % (train_loss / (batch_num + 1)))
 
         print("    Average Loss: {:.4f}".format(train_loss / len(self.training_loader)))
 
@@ -69,9 +61,9 @@ class SRCNNTrainer(object):
                 mse = self.criterion(prediction, target)
                 psnr = 10 * log10(1 / mse.item())
                 avg_psnr += psnr
-                progress_bar(batch_num, len(self.testing_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
+                progress_bar(batch_num, len(self.testing_loader), 'PSNR: %.3f' % (avg_psnr / (batch_num + 1)))
 
-        print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.testing_loader)))
+        print("    Average PSNR: {:.3f} dB".format(avg_psnr / len(self.testing_loader)))
 
     def run(self):
         self.build_model()
@@ -81,4 +73,4 @@ class SRCNNTrainer(object):
             self.test()
             self.scheduler.step(epoch)
             if epoch == self.nEpochs:
-                self.save_model()
+                self.save()
