@@ -7,25 +7,14 @@ import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
 from PIL import Image
 
+from trainer import Trainer
 from VDSR.model import Net
 from progress_bar import progress_bar
 
 
-class VDSRTrainer(object):
+class VDSRTrainer(Trainer):
     def __init__(self, config, training_loader, testing_loader):
-        super(VDSRTrainer, self).__init__()
-        self.CUDA = torch.cuda.is_available()
-        self.device = torch.device('cuda' if self.CUDA else 'cpu')
-        self.model = None
-        self.lr = config.lr
-        self.nEpochs = config.nEpochs
-        self.criterion = None
-        self.optimizer = None
-        self.scheduler = None
-        self.seed = config.seed
-        self.upscale_factor = config.upscale_factor
-        self.training_loader = training_loader
-        self.testing_loader = testing_loader
+        super(VDSRTrainer, self).__init__(config, training_loader, testing_loader, "vdsr")
 
     def build_model(self):
         self.model = Net(num_channels=1, base_channels=64, num_residuals=4).to(self.device)
@@ -33,7 +22,7 @@ class VDSRTrainer(object):
         self.criterion = torch.nn.MSELoss()
         torch.manual_seed(self.seed)
 
-        if self.CUDA:
+        if self.GPU_IN_USE:
             torch.cuda.manual_seed(self.seed)
             cudnn.benchmark = True
             self.criterion.cuda()
@@ -70,11 +59,6 @@ class VDSRTrainer(object):
                                             transforms.ToTensor()])
             return transform(data)
 
-    def save(self):
-        model_out_path = "VDSR_model_path.pth"
-        torch.save(self.model, model_out_path)
-        print("Checkpoint saved to {}".format(model_out_path))
-
     def train(self):
         self.model.train()
         train_loss = 0
@@ -106,13 +90,3 @@ class VDSRTrainer(object):
                 progress_bar(batch_num, len(self.testing_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
 
         print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.testing_loader)))
-
-    def run(self):
-        self.build_model()
-        for epoch in range(1, self.nEpochs + 1):
-            print("\n===> Epoch {} starts:".format(epoch))
-            self.train()
-            self.test()
-            self.scheduler.step(epoch)
-            if epoch == self.nEpochs:
-                self.save()
