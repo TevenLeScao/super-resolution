@@ -28,7 +28,8 @@ class SRGANTrainer(Trainer):
         self.optimizerD = None
 
     def build_model(self):
-        self.netG = Generator(n_residual_blocks=self.num_residuals, upsample_factor=self.upscale_factor, base_filter=64, num_channels=3).to(self.device)
+        self.netG = Generator(n_residual_blocks=self.num_residuals, upsample_factor=self.upscale_factor, base_filter=64,
+                              num_channels=3).to(self.device)
         self.netD = Discriminator(base_filter=64, num_channels=3).to(self.device)
         self.feature_extractor = vgg16(pretrained=True)
         self.netG.weight_init(mean=0.0, std=0.2)
@@ -46,8 +47,10 @@ class SRGANTrainer(Trainer):
 
         self.optimizerG = optim.Adam(self.netG.parameters(), lr=self.lr, betas=(0.9, 0.999))
         self.optimizerD = optim.SGD(self.netD.parameters(), lr=self.lr / 100, momentum=0.9, nesterov=True)
-        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizerG, milestones=[50, 75, 100], gamma=0.5)  # lr decay
-        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizerD, milestones=[50, 75, 100], gamma=0.5)  # lr decay
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizerG, milestones=[50, 75, 100],
+                                                        gamma=0.5)  # lr decay
+        self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizerD, milestones=[50, 75, 100],
+                                                        gamma=0.5)  # lr decay
 
     @staticmethod
     def to_data(x):
@@ -108,7 +111,8 @@ class SRGANTrainer(Trainer):
             g_total.backward()
             self.optimizerG.step()
 
-            progress_bar(batch_num, len(self.training_loader), 'G_Loss: %.4f | D_Loss: %.4f' % (g_train_loss / (batch_num + 1), d_train_loss / (batch_num + 1)))
+            progress_bar(batch_num, len(self.training_loader), 'G_Loss: %.4f | D_Loss: %.4f' % (
+            g_train_loss / (batch_num + 1), d_train_loss / (batch_num + 1)))
 
         print("    Average G_Loss: {:.4f}".format(g_train_loss / len(self.training_loader)))
 
@@ -132,7 +136,8 @@ class SRGANTrainer(Trainer):
     def run(self):
         best_psnr = 0
         self.build_model()
-        n_params = sum(map(lambda x: x.numel(), self.model.parameters()))
+        n_params = sum(map(lambda x: x.numel(), self.netG.parameters())) + sum(
+            map(lambda x: x.numel(), self.netD.parameters()))
         print("    {} params".format(n_params))
         for epoch in range(1, self.epoch_pretrain + 1):
             self.pretrain()
