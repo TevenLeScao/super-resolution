@@ -33,12 +33,12 @@ class UpsampleBlock(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, n_residual_blocks, upsample_factor, num_channel=1, base_filter=64):
+    def __init__(self, n_residual_blocks, upsample_factor, num_channels=3, base_filter=64):
         super(Generator, self).__init__()
         self.n_residual_blocks = n_residual_blocks
         self.upsample_factor = upsample_factor
 
-        self.conv1 = nn.Conv2d(num_channel, base_filter, kernel_size=9, stride=1, padding=4)
+        self.conv1 = nn.Conv2d(num_channels, base_filter, kernel_size=9, stride=1, padding=4)
 
         for i in range(self.n_residual_blocks):
             self.add_module('residual_block' + str(i + 1), ResidualBlock(in_channels=base_filter, out_channels=base_filter, kernel=3, stride=1))
@@ -49,7 +49,7 @@ class Generator(nn.Module):
         for i in range(self.upsample_factor // 2):
             self.add_module('upsample' + str(i + 1), UpsampleBlock(base_filter))
 
-        self.conv3 = nn.Conv2d(base_filter, num_channel, kernel_size=9, stride=1, padding=4)
+        self.conv3 = nn.Conv2d(base_filter, num_channels, kernel_size=9, stride=1, padding=4)
 
     def forward(self, x):
         x = swish(self.conv1(x))
@@ -71,9 +71,9 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, num_channel=1, base_filter=64):
+    def __init__(self, num_channels=3, base_filter=64):
         super(Discriminator, self).__init__()
-        self.conv1 = nn.Conv2d(num_channel, base_filter, kernel_size=3, stride=1, padding=1)
+        self.conv1 = nn.Conv2d(num_channels, base_filter, kernel_size=3, stride=1, padding=1)
 
         self.conv2 = nn.Conv2d(base_filter, base_filter, kernel_size=3, stride=2, padding=1)
         self.bn2 = nn.BatchNorm2d(base_filter)
@@ -91,7 +91,7 @@ class Discriminator(nn.Module):
         self.bn8 = nn.BatchNorm2d(base_filter * 8)
 
         # Replaced original paper FC layers with FCN
-        self.conv9 = nn.Conv2d(base_filter * 8, num_channel, kernel_size=1, stride=1, padding=0)
+        self.conv9 = nn.Conv2d(base_filter * 8, num_channels, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x):
         x = swish(self.conv1(x))

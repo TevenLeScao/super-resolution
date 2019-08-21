@@ -28,8 +28,8 @@ class SRGANTrainer(Trainer):
         self.optimizerD = None
 
     def build_model(self):
-        self.netG = Generator(n_residual_blocks=self.num_residuals, upsample_factor=self.upscale_factor, base_filter=64, num_channel=3).to(self.device)
-        self.netD = Discriminator(base_filter=64, num_channel=1).to(self.device)
+        self.netG = Generator(n_residual_blocks=self.num_residuals, upsample_factor=self.upscale_factor, base_filter=64, num_channels=3).to(self.device)
+        self.netD = Discriminator(base_filter=64, num_channels=3).to(self.device)
         self.feature_extractor = vgg16(pretrained=True)
         self.netG.weight_init(mean=0.0, std=0.2)
         self.netD.weight_init(mean=0.0, std=0.2)
