@@ -1,4 +1,3 @@
-from __future__ import print_function
 from math import log10
 
 import torch
@@ -14,8 +13,8 @@ from trainer import Trainer
 
 
 class DRCNTrainer(Trainer):
-    def __init__(self, config, training_loader, testing_loader):
-        super(DRCNTrainer, self).__init__(config, training_loader, testing_loader, "drcn")
+    def __init__(self, config, training_loader, valid_loader):
+        super(DRCNTrainer, self).__init__(config, training_loader, valid_loader, "drcn")
 
         # DRCN setup
         self.momentum = 0.9
@@ -106,7 +105,7 @@ class DRCNTrainer(Trainer):
 
         print("    Average Loss: {:.4f}".format(train_loss / len(self.training_loader)))
 
-    def test(self):
+    def valid(self):
         """
         data: [torch.cuda.FloatTensor], 10 batches: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
         """
@@ -114,16 +113,16 @@ class DRCNTrainer(Trainer):
         avg_psnr = 0
 
         with torch.no_grad():
-            for batch_num, (data, target) in enumerate(self.testing_loader):
+            for batch_num, (data, target) in enumerate(self.valid_loader):
                 data = self.img_preprocess(data)  # resize input image size
                 data, target = data.to(self.device), target.to(self.device)
                 _, prediction = self.model(data)
                 mse = self.criterion(prediction, target)
                 psnr = 10 * log10(1 / mse.item())
                 avg_psnr += psnr
-                progress_bar(batch_num, len(self.testing_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
+                progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
 
-        print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.testing_loader)))
+        print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.valid_loader)))
 
     def run(self):
         self.build_model()
@@ -131,7 +130,7 @@ class DRCNTrainer(Trainer):
             print("\n===> Epoch {} starts:".format(epoch))
             self.loss_alpha = max(0.0, self.loss_alpha - self.loss_alpha_decay)
             self.train()
-            self.test()
+            self.valid()
             self.scheduler.step(epoch)
             if epoch == self.nEpochs:
                 self.save()

@@ -11,7 +11,7 @@ from progress_bar import progress_bar
 
 # Trainer super-class that the individual model trainers inherit from
 class Trainer(object):
-    def __init__(self, config, training_loader, testing_loader, model_type):
+    def __init__(self, config, training_loader, valid_loader, model_type):
         self.GPU_IN_USE = torch.cuda.is_available()
         self.device = torch.device('cuda' if self.GPU_IN_USE else 'cpu')
         self.model = None
@@ -23,7 +23,7 @@ class Trainer(object):
         self.seed = config.seed
         self.upscale_factor = config.upscale_factor
         self.training_loader = training_loader
-        self.testing_loader = testing_loader
+        self.valid_loader = valid_loader
         self.model_type = model_type
         self.out_path = os.path.join("results/models/", self.model_type)
         os.makedirs(self.out_path, exist_ok=True)
@@ -50,27 +50,27 @@ class Trainer(object):
 
         print("    Average Loss: {:.4f}".format(train_loss / len(self.training_loader)))
 
-    def test(self):
+    def valid(self):
         self.model.eval()
         avg_psnr = 0
 
         with torch.no_grad():
-            for batch_num, (data, target) in enumerate(self.testing_loader):
+            for batch_num, (data, target) in enumerate(self.valid_loader):
                 data, target = data.to(self.device), target.to(self.device)
                 prediction = self.model(data)
                 mse = self.criterion(prediction, target)
                 psnr = 10 * log10(1 / mse.item())
                 avg_psnr += psnr
-                progress_bar(batch_num, len(self.testing_loader), 'PSNR: %.3f' % (avg_psnr / (batch_num + 1)))
+                progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.3f' % (avg_psnr / (batch_num + 1)))
 
-        print("    Average PSNR: {:.3f} dB".format(avg_psnr / len(self.testing_loader)))
+        print("    Average PSNR: {:.3f} dB".format(avg_psnr / len(self.valid_loader)))
 
     def run(self):
         self.build_model()
         for epoch in range(1, self.nEpochs + 1):
             print("\n===> Epoch {} starts:".format(epoch))
             self.train()
-            self.test()
+            self.valid()
             self.scheduler.step(epoch)
             if epoch == self.nEpochs:
                 self.save()

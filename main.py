@@ -10,15 +10,15 @@ from models.SRCNN.srcnn_trainer import SRCNNTrainer
 from models.SRGAN.srgan_trainer import SRGANTrainer
 from models.SubPixelCNN.sub_pixel_trainer import SubPixelTrainer
 from models.VDSR.vdsr_trainer import VDSRTrainer
-from dataset.data import get_training_set, get_test_set
+from dataset.data import get_training_set, get_valid_set
 
 # ===========================================================
 # Training settings
 # ===========================================================
 parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 # hyper-parameters
-parser.add_argument('--batchSize', type=int, default=1, help='training batch size')
-parser.add_argument('--testBatchSize', type=int, default=1, help='testing batch size')
+parser.add_argument('--batchSize', type=int, default=1, help='train batch size')
+parser.add_argument('--validBatchSize', type=int, default=1, help='valid batch size')
 parser.add_argument('--nEpochs', type=int, default=20, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.01, help='Learning Rate. Default=0.01')
 parser.add_argument('--seed', type=int, default=123, help='random seed to use. Default=123')
@@ -32,30 +32,30 @@ args = parser.parse_args()
 
 def main():
     # ===========================================================
-    # Set train dataset & test dataset
+    # Set train dataset & valid dataset
     # ===========================================================
     print('===> Loading datasets')
     train_set = get_training_set(args.upscale_factor)
-    test_set = get_test_set(args.upscale_factor)
+    valid_set = get_valid_set(args.upscale_factor)
     training_data_loader = DataLoader(dataset=train_set, batch_size=args.batchSize, shuffle=True)
-    testing_data_loader = DataLoader(dataset=test_set, batch_size=args.testBatchSize, shuffle=False)
+    valid_data_loader = DataLoader(dataset=valid_set, batch_size=args.validBatchSize, shuffle=False)
 
     if args.model == 'sub':
-        model = SubPixelTrainer(args, training_data_loader, testing_data_loader)
+        model = SubPixelTrainer(args, training_data_loader, valid_data_loader)
     elif args.model == 'srcnn':
-        model = SRCNNTrainer(args, training_data_loader, testing_data_loader)
+        model = SRCNNTrainer(args, training_data_loader, valid_data_loader)
     elif args.model == 'vdsr':
-        model = VDSRTrainer(args, training_data_loader, testing_data_loader)
+        model = VDSRTrainer(args, training_data_loader, valid_data_loader)
     elif args.model == 'edsr':
-        model = EDSRTrainer(args, training_data_loader, testing_data_loader)
+        model = EDSRTrainer(args, training_data_loader, valid_data_loader)
     elif args.model == 'fsrcnn':
-        model = FSRCNNTrainer(args, training_data_loader, testing_data_loader)
+        model = FSRCNNTrainer(args, training_data_loader, valid_data_loader)
     elif args.model == 'drcn':
-        model = DRCNTrainer(args, training_data_loader, testing_data_loader)
+        model = DRCNTrainer(args, training_data_loader, valid_data_loader)
     elif args.model == 'srgan':
-        model = SRGANTrainer(args, training_data_loader, testing_data_loader)
+        model = SRGANTrainer(args, training_data_loader, valid_data_loader)
     elif args.model == 'dbpn':
-        model = DBPNTrainer(args, training_data_loader, testing_data_loader)
+        model = DBPNTrainer(args, training_data_loader, valid_data_loader)
     else:
         raise Exception("the model does not exist")
 

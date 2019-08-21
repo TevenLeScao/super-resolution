@@ -60,11 +60,11 @@ def get_training_set(upscale_factor):
                              target_transform=target_transform(crop_size))
 
 
-def get_test_set(upscale_factor):
+def get_valid_set(upscale_factor):
     root_dir = download_bsd300()
-    test_dir = join(root_dir, "test")
+    valid_dir = join(root_dir, "valid")
     crop_size = calculate_valid_crop_size(256, upscale_factor)
 
-    return DatasetFromFolder(test_dir,
+    return DatasetFromFolder(valid_dir,
                              input_transform=input_transform(crop_size, upscale_factor),
                              target_transform=target_transform(crop_size))

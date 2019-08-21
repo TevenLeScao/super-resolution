@@ -1,4 +1,3 @@
-from __future__ import print_function
 from math import log10
 import os
 
@@ -14,8 +13,8 @@ from progress_bar import progress_bar
 
 
 class SRGANTrainer(Trainer):
-    def __init__(self, config, training_loader, testing_loader):
-        super(SRGANTrainer, self).__init__(config, training_loader, testing_loader, "srgan")
+    def __init__(self, config, training_loader, valid_loader):
+        super(SRGANTrainer, self).__init__(config, training_loader, valid_loader, "srgan")
 
         # SRGAN setup
         self.epoch_pretrain = 10
@@ -57,8 +56,8 @@ class SRGANTrainer(Trainer):
         return x.data
 
     def save(self):
-        g_model_out_path = os.path.join(self.out_path, "SRGAN_Generator.pth")
-        d_model_out_path = os.path.join(self.out_path, "SRGAN_Discriminator.pth")
+        g_model_out_path = os.path.join(self.out_path, "srgan_generator.pth")
+        d_model_out_path = os.path.join(self.out_path, "srgan_discriminator.pth")
         torch.save(self.netG, g_model_out_path)
         torch.save(self.netD, d_model_out_path)
         print("Checkpoint saved to {}".format(g_model_out_path))
@@ -113,20 +112,20 @@ class SRGANTrainer(Trainer):
 
         print("    Average G_Loss: {:.4f}".format(g_train_loss / len(self.training_loader)))
 
-    def test(self):
+    def valid(self):
         self.netG.eval()
         avg_psnr = 0
 
         with torch.no_grad():
-            for batch_num, (data, target) in enumerate(self.testing_loader):
+            for batch_num, (data, target) in enumerate(self.valid_loader):
                 data, target = data.to(self.device), target.to(self.device)
                 prediction = self.netG(data)
                 mse = self.criterionG(prediction, target)
                 psnr = 10 * log10(1 / mse.item())
                 avg_psnr += psnr
-                progress_bar(batch_num, len(self.testing_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
+                progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
 
-        print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.testing_loader)))
+        print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.valid_loader)))
 
     def run(self):
         self.build_model()
@@ -137,7 +136,7 @@ class SRGANTrainer(Trainer):
         for epoch in range(1, self.nEpochs + 1):
             print("\n===> Epoch {} starts:".format(epoch))
             self.train()
-            self.test()
+            self.valid()
             self.scheduler.step(epoch)
             if epoch == self.nEpochs:
                 self.save()

@@ -3,9 +3,9 @@ import math
 import torch.nn as nn
 
 
-class DBPN(nn.Module):
+class Net(nn.Module):
     def __init__(self, num_channels, base_channels, feat_channels, num_stages, scale_factor):
-        super(DBPN, self).__init__()
+        super(Net, self).__init__()
 
         if scale_factor == 2:
             kernel_size = 6

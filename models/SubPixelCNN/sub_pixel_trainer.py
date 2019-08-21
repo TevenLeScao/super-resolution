@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import torch
 import torch.backends.cudnn as cudnn
 
@@ -8,8 +6,8 @@ from models.SubPixelCNN.model import Net
 
 
 class SubPixelTrainer(Trainer):
-    def __init__(self, config, training_loader, testing_loader):
-        super(SubPixelTrainer, self).__init__(config, training_loader, testing_loader, "sub_pixel")
+    def __init__(self, config, training_loader, valid_loader):
+        super(SubPixelTrainer, self).__init__(config, training_loader, valid_loader, "sub_pixel")
 
     def build_model(self):
         self.model = Net(upscale_factor=self.upscale_factor).to(self.device)

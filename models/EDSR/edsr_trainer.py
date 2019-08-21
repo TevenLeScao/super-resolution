@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import torch
 import torch.backends.cudnn as cudnn
 
@@ -8,8 +6,8 @@ from trainer import Trainer
 
 
 class EDSRTrainer(Trainer):
-    def __init__(self, config, training_loader, testing_loader):
-        super(EDSRTrainer, self).__init__( config, training_loader, testing_loader, "edsr")
+    def __init__(self, config, training_loader, valid_loader):
+        super(EDSRTrainer, self).__init__(config, training_loader, valid_loader, "edsr")
 
     def build_model(self):
         self.model = Net(num_channels=1, upscale_factor=self.upscale_factor, base_channel=64, num_residuals=4).to(self.device)

@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import torch
 import torch.backends.cudnn as cudnn
 
@@ -8,8 +6,8 @@ from models.SRCNN.model import Net
 
 
 class SRCNNTrainer(Trainer):
-    def __init__(self, config, training_loader, testing_loader):
-        super(SRCNNTrainer, self).__init__(config, training_loader, testing_loader, "srcnn")
+    def __init__(self, config, training_loader, valid_loader):
+        super(SRCNNTrainer, self).__init__(config, training_loader, valid_loader, "srcnn")
 
     def build_model(self):
         self.model = Net(num_channels=1, base_filter=64, upscale_factor=self.upscale_factor).to(self.device)

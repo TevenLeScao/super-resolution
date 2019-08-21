@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -10,8 +8,8 @@ from models.DENN.model import DENN
 
 
 class DBPNTrainer(Trainer):
-    def __init__(self, config, training_loader, testing_loader):
-        super(DBPNTrainer, self).__init__(config, training_loader, testing_loader, "dbpn")
+    def __init__(self, config, training_loader, valid_loader):
+        super(DBPNTrainer, self).__init__(config, training_loader, valid_loader, "dbpn")
 
     def build_model(self):
         self.model = DENN(num_channels=1, base_channels=64, scale_factor=self.upscale_factor).to(self.device)

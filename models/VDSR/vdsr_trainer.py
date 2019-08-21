@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from math import log10
 
 import torch
@@ -13,8 +11,8 @@ from progress_bar import progress_bar
 
 
 class VDSRTrainer(Trainer):
-    def __init__(self, config, training_loader, testing_loader):
-        super(VDSRTrainer, self).__init__(config, training_loader, testing_loader, "vdsr")
+    def __init__(self, config, training_loader, valid_loader):
+        super(VDSRTrainer, self).__init__(config, training_loader, valid_loader, "vdsr")
 
     def build_model(self):
         self.model = Net(num_channels=1, base_channels=64, num_residuals=4).to(self.device)
@@ -75,18 +73,18 @@ class VDSRTrainer(Trainer):
 
         print("    Average Loss: {:.4f}".format(train_loss / len(self.training_loader)))
 
-    def test(self):
+    def valid(self):
         self.model.eval()
         avg_psnr = 0
 
         with torch.no_grad():
-            for batch_num, (data, target) in enumerate(self.testing_loader):
+            for batch_num, (data, target) in enumerate(self.valid_loader):
                 data = self.img_preprocess(data)  # resize input image size
                 data, target = data.to(self.device), target.to(self.device)
                 prediction = self.model(data)
                 mse = self.criterion(prediction, target)
                 psnr = 10 * log10(1 / mse.item())
                 avg_psnr += psnr
-                progress_bar(batch_num, len(self.testing_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
+                progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
 
-        print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.testing_loader)))
+        print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.valid_loader)))

@@ -1,21 +1,19 @@
-from __future__ import print_function
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
 from trainer import Trainer
-from models.DBPN.model import DBPN
+from models.DBPN.model import Net
 
 
 class DBPNTrainer(Trainer):
-    def __init__(self, config, training_loader, testing_loader):
-        super(DBPNTrainer, self).__init__(config, training_loader, testing_loader, "dbpn")
+    def __init__(self, config, training_loader, valid_loader):
+        super(DBPNTrainer, self).__init__(config, training_loader, valid_loader, "dbpn")
 
     def build_model(self):
-        self.model = DBPN(num_channels=1, base_channels=64, feat_channels=256, num_stages=7,
-                          scale_factor=self.upscale_factor).to(self.device)
+        self.model = Net(num_channels=1, base_channels=64, feat_channels=256, num_stages=7,
+                         scale_factor=self.upscale_factor).to(self.device)
         self.model.weight_init()
         self.criterion = nn.L1Loss()
         torch.manual_seed(self.seed)
