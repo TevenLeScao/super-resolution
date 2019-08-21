@@ -11,6 +11,10 @@ def is_image_file(filename):
 
 
 def load_img(filepath):
+    return Image.open(filepath)
+
+
+def load_img_ycbcr(filepath):
     img = Image.open(filepath).convert('YCbCr')
     y, _, _ = img.split()
     return y

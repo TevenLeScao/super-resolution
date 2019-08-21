@@ -15,7 +15,7 @@ class VDSRTrainer(Trainer):
         super(VDSRTrainer, self).__init__(config, training_loader, valid_loader, "vdsr")
 
     def build_model(self):
-        self.model = Net(num_channels=1, base_channels=64, num_residuals=4).to(self.device)
+        self.model = Net(num_channels=3, base_channels=64, num_residuals=4).to(self.device)
         self.model.weight_init()
         self.criterion = torch.nn.MSELoss()
         torch.manual_seed(self.seed)

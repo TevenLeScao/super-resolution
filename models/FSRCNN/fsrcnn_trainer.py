@@ -10,7 +10,7 @@ class FSRCNNTrainer(Trainer):
         super(FSRCNNTrainer, self).__init__(config, training_loader, valid_loader, "fsrcnn")
 
     def build_model(self):
-        self.model = Net(num_channels=1, upscale_factor=self.upscale_factor).to(self.device)
+        self.model = Net(num_channels=3, upscale_factor=self.upscale_factor).to(self.device)
         self.model.weight_init(mean=0.0, std=0.2)
         self.criterion = torch.nn.MSELoss()
         torch.manual_seed(self.seed)

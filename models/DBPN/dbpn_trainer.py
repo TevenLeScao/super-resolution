@@ -12,7 +12,7 @@ class DBPNTrainer(Trainer):
         super(DBPNTrainer, self).__init__(config, training_loader, valid_loader, "dbpn")
 
     def build_model(self):
-        self.model = Net(num_channels=1, base_channels=64, feat_channels=256, num_stages=7,
+        self.model = Net(num_channels=3, base_channels=64, feat_channels=256, num_stages=7,
                          scale_factor=self.upscale_factor).to(self.device)
         self.model.weight_init()
         self.criterion = nn.L1Loss()
