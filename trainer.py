@@ -65,12 +65,16 @@ class Trainer(object):
 
         print("    Average PSNR: {:.3f} dB".format(avg_psnr / len(self.valid_loader)))
 
+        return avg_psnr
+
     def run(self):
+        best_psnr = 0
         self.build_model()
         for epoch in range(1, self.nEpochs + 1):
             print("\n===> Epoch {} starts:".format(epoch))
             self.train()
-            self.valid()
+            valid_psnr = self.valid()
             self.scheduler.step(epoch)
-            if epoch == self.nEpochs:
+            if valid_psnr > best_psnr:
                 self.save()
+                best_psnr = valid_psnr

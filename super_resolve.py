@@ -12,7 +12,7 @@ import numpy as np
 parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 parser.add_argument('--input', type=str, required=False, default='/home/teven/canvas/python/super-resolution/dataset/BSDS300/images/valid/3096.jpg', help='input image to use')
 parser.add_argument('--model', '-m', type=str, default='srgan', help='choose which model is going to use')
-parser.add_argument('--output', type=str, default='valid.jpg', help='where to save the output image')
+parser.add_argument('--output', type=str, default='test.jpg', help='where to save the output image')
 args = parser.parse_args()
 print(args)
 

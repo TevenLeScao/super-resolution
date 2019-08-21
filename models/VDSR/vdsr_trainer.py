@@ -88,3 +88,5 @@ class VDSRTrainer(Trainer):
                 progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
 
         print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.valid_loader)))
+
+        return avg_psnr

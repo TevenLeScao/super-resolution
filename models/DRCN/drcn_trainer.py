@@ -124,13 +124,17 @@ class DRCNTrainer(Trainer):
 
         print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.valid_loader)))
 
+        return avg_psnr
+
     def run(self):
+        best_psnr = 0
         self.build_model()
         for epoch in range(1, self.nEpochs + 1):
             print("\n===> Epoch {} starts:".format(epoch))
             self.loss_alpha = max(0.0, self.loss_alpha - self.loss_alpha_decay)
             self.train()
-            self.valid()
-            self.scheduler.step(epoch)
-            if epoch == self.nEpochs:
+            valid_psnr = self.valid()
+            if valid_psnr > best_psnr:
                 self.save()
+                best_psnr = valid_psnr
+            self.scheduler.step(epoch)
