@@ -132,6 +132,8 @@ class SRGANTrainer(Trainer):
     def run(self):
         best_psnr = 0
         self.build_model()
+        n_params = sum(map(lambda x: x.numel(), self.model.parameters()))
+        print("    {} params".format(n_params))
         for epoch in range(1, self.epoch_pretrain + 1):
             self.pretrain()
             print("{}/{} pretrained".format(epoch, self.epoch_pretrain))
@@ -146,3 +148,4 @@ class SRGANTrainer(Trainer):
             self.scheduler.step(epoch)
 
         print("    Best Average PSNR: {:.3f} dB".format(best_psnr))
+        print("    {} params".format(n_params))

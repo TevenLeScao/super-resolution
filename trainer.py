@@ -71,6 +71,8 @@ class Trainer(object):
     def run(self):
         best_psnr = 0
         self.build_model()
+        n_params = sum(map(lambda x: x.numel(), self.model.parameters()))
+        print("    {} params".format(n_params))
         for epoch in range(1, self.nEpochs + 1):
             print("\n===> Epoch {} starts:".format(epoch))
             self.train()
@@ -81,5 +83,6 @@ class Trainer(object):
                 best_psnr = valid_psnr
 
         print("    Best Average PSNR: {:.3f} dB".format(best_psnr))
+        print("    {} params".format(n_params))
 
 

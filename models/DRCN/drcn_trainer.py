@@ -129,6 +129,8 @@ class DRCNTrainer(Trainer):
     def run(self):
         best_psnr = 0
         self.build_model()
+        n_params = sum(map(lambda x: x.numel(), self.model.parameters()))
+        print("    {} params".format(n_params))
         for epoch in range(1, self.nEpochs + 1):
             print("\n===> Epoch {} starts:".format(epoch))
             self.loss_alpha = max(0.0, self.loss_alpha - self.loss_alpha_decay)
@@ -140,3 +142,4 @@ class DRCNTrainer(Trainer):
             self.scheduler.step(epoch)
 
         print("    Best Average PSNR: {:.3f} dB".format(best_psnr))
+        print("    {} params".format(n_params))
