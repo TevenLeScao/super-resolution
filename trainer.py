@@ -53,12 +53,13 @@ class Trainer(object):
     def valid(self):
         self.model.eval()
         avg_psnr = 0
+        MSE = nn.MSELoss()
 
         with torch.no_grad():
             for batch_num, (data, target) in enumerate(self.valid_loader):
                 data, target = data.to(self.device), target.to(self.device)
                 prediction = self.model(data)
-                mse = self.criterion(prediction, target)
+                mse = MSE(prediction, target)
                 psnr = 10 * log10(1 / mse.item())
                 avg_psnr += psnr
                 progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.3f' % (avg_psnr / (batch_num + 1)))
@@ -78,3 +79,4 @@ class Trainer(object):
             if valid_psnr > best_psnr:
                 self.save()
                 best_psnr = valid_psnr
+
