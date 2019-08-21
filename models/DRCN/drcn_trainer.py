@@ -138,3 +138,5 @@ class DRCNTrainer(Trainer):
                 self.save()
                 best_psnr = valid_psnr
             self.scheduler.step(epoch)
+
+        print("    Best Average PSNR: {:.3f} dB".format(best_psnr))

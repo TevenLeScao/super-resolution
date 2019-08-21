@@ -19,8 +19,8 @@ parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 # hyper-parameters
 parser.add_argument('--batchSize', type=int, default=1, help='train batch size')
 parser.add_argument('--validBatchSize', type=int, default=1, help='valid batch size')
-parser.add_argument('--nEpochs', type=int, default=20, help='number of epochs to train for')
-parser.add_argument('--lr', type=float, default=0.01, help='Learning Rate. Default=0.01')
+parser.add_argument('--nEpochs', type=int, default=30, help='number of epochs to train for. Default=30')
+parser.add_argument('--lr', type=float, default=0.005, help='Learning Rate. Default=0.005')
 parser.add_argument('--seed', type=int, default=123, help='random seed to use. Default=123')
 
 # model configuration

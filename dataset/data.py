@@ -1,9 +1,11 @@
 import tarfile
 from os import remove
 from os.path import exists, join, basename
+import random
 
 from six.moves import urllib
-from torchvision.transforms import Compose, CenterCrop, ToTensor, Resize
+from torchvision.transforms import Compose, CenterCrop, ToTensor, Resize, RandomVerticalFlip, RandomHorizontalFlip, RandomChoice
+from torchvision.transforms.functional import rotate
 
 from .dataset import DatasetFromFolder
 
@@ -50,6 +52,24 @@ def target_transform(crop_size):
     ])
 
 
+def random_rotation(img):
+    throw = random.random()
+    if throw > 0.5:
+        return img
+    else:
+        return rotate(img, 90)
+
+
+
+
+def augment_transform():
+    return Compose([
+        RandomVerticalFlip(),
+        RandomHorizontalFlip(),
+        random_rotation
+    ])
+
+
 def get_training_set(upscale_factor):
     root_dir = download_bsd300()
     train_dir = join(root_dir, "train")
@@ -57,12 +77,23 @@ def get_training_set(upscale_factor):
 
     return DatasetFromFolder(train_dir,
                              input_transform=input_transform(crop_size, upscale_factor),
-                             target_transform=target_transform(crop_size))
+                             target_transform=target_transform(crop_size),
+                             augment_transform=augment_transform())
 
 
 def get_valid_set(upscale_factor):
     root_dir = download_bsd300()
     valid_dir = join(root_dir, "valid")
+    crop_size = calculate_valid_crop_size(256, upscale_factor)
+
+    return DatasetFromFolder(valid_dir,
+                             input_transform=input_transform(crop_size, upscale_factor),
+                             target_transform=target_transform(crop_size))
+
+
+def get_test_set(upscale_factor):
+    root_dir = "./dataset/urban100/images"
+    valid_dir = join(root_dir, "test")
     crop_size = calculate_valid_crop_size(256, upscale_factor)
 
     return DatasetFromFolder(valid_dir,

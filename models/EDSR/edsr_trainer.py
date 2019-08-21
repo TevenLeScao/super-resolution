@@ -10,7 +10,7 @@ class EDSRTrainer(Trainer):
         super(EDSRTrainer, self).__init__(config, training_loader, valid_loader, "edsr")
 
     def build_model(self):
-        self.model = Net(num_channels=1, upscale_factor=self.upscale_factor, base_channel=64, num_residuals=4).to(self.device)
+        self.model = Net(num_channels=1, upscale_factor=self.upscale_factor, base_channel=64, num_residuals=2).to(self.device)
         self.model.weight_init(mean=0.0, std=0.02)
         self.criterion = torch.nn.L1Loss()
         torch.manual_seed(self.seed)

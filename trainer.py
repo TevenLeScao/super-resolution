@@ -80,3 +80,6 @@ class Trainer(object):
                 self.save()
                 best_psnr = valid_psnr
 
+        print("    Best Average PSNR: {:.3f} dB".format(best_psnr))
+
+

@@ -14,7 +14,7 @@ from models.SRCNN.srcnn_trainer import SRCNNTrainer
 from models.SRGAN.srgan_trainer import SRGANTrainer
 from models.SubPixelCNN.sub_pixel_trainer import SubPixelTrainer
 from models.VDSR.vdsr_trainer import VDSRTrainer
-from dataset.data import get_training_set, get_valid_set
+from dataset.data import get_test_set, get_valid_set
 
 from progress_bar import progress_bar
 
@@ -25,6 +25,7 @@ parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 # hyper-parameters
 parser.add_argument('--batchSize', type=int, default=1, help='batch size')
 parser.add_argument('--seed', type=int, default=123, help='random seed to use. Default=123')
+parser.add_argument('--dataset', type=str, default='test', help='use valid or test dataset. Default test')
 
 # model configuration
 parser.add_argument('--upscale_factor', '-uf',  type=int, default=4, help="super resolution upscale factor")
@@ -39,7 +40,10 @@ def main():
     # ===========================================================
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('===> Loading datasets')
-    test_set = get_valid_set(args.upscale_factor)
+    if args.dataset == 'test':
+        test_set = get_test_set(args.upscale_factor)
+    elif args.dataset == 'valid':
+        test_set = get_valid_set(args.upscale_factor)
     test_data_loader = DataLoader(dataset=test_set, batch_size=args.batchSize, shuffle=False)
 
     file_name = args.model + "_generator.pth" if "gan" in args.model else "model.pth"
