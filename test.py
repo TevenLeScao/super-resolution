@@ -26,6 +26,8 @@ parser = argparse.ArgumentParser(description='PyTorch Super Res Example')
 parser.add_argument('--batchSize', type=int, default=1, help='batch size')
 parser.add_argument('--seed', type=int, default=123, help='random seed to use. Default=123')
 parser.add_argument('--dataset', type=str, default='test', help='use valid or test dataset. Default test')
+parser.add_argument('--diff', default=False, action='store_true', help='is model differential ?')
+parser.add_argument('--no-diff', dest='diff', action='store_false', help='is model differential ?')
 
 # model configuration
 parser.add_argument('--upscale_factor', '-uf',  type=int, default=4, help="super resolution upscale factor")
@@ -44,10 +46,13 @@ def main():
         test_set = get_test_set(args.upscale_factor)
     elif args.dataset == 'valid':
         test_set = get_valid_set(args.upscale_factor)
+    else:
+        raise NotImplementedError
     test_data_loader = DataLoader(dataset=test_set, batch_size=args.batchSize, shuffle=False)
 
     file_name = args.model + "_generator.pth" if "gan" in args.model else "model.pth"
-    model_path = "/home/teven/canvas/python/super-resolution/results/models/{}/{}".format(args.model, file_name)
+    model_name = args.model + ("_diff" if args.diff else "")
+    model_path = "/home/teven/canvas/python/super-resolution/results/models/{}/{}".format(model_name, file_name)
     model = torch.load(model_path, map_location=lambda storage, loc: storage)
     model = model.to(device)
     model.eval()

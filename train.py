@@ -26,6 +26,8 @@ parser.add_argument('--seed', type=int, default=123, help='random seed to use. D
 # model configuration
 parser.add_argument('--upscale_factor', '-uf',  type=int, default=4, help="super resolution upscale factor")
 parser.add_argument('--model', '-m', type=str, default='srgan', help='choose which model is going to use')
+parser.add_argument('--diff', default=False, action='store_true', help='is model differential ?')
+parser.add_argument('--no-diff', dest='diff', action='store_false', help='is model differential ?')
 
 args = parser.parse_args()
 
@@ -53,7 +55,7 @@ def main():
     elif args.model == 'drcn':
         model = DRCNTrainer(args, training_data_loader, valid_data_loader)
     elif args.model == 'srgan':
-        model = SRGANTrainer(args, training_data_loader, valid_data_loader)
+        model = SRGANTrainer(args, training_data_loader, valid_data_loader, diff=args.diff)
     elif args.model == 'dbpn':
         model = DBPNTrainer(args, training_data_loader, valid_data_loader)
     else:

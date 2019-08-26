@@ -5,11 +5,13 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
+import numpy as np
 
 from models.DRCN.model import Net
 from progress_bar import progress_bar
 from PIL import Image
 from trainer import Trainer
+from util import niqe_metric
 
 
 class DRCNTrainer(Trainer):
@@ -111,16 +113,21 @@ class DRCNTrainer(Trainer):
         """
         self.model.eval()
         avg_psnr = 0
+        avg_niqe = 0
 
         with torch.no_grad():
             for batch_num, (data, target) in enumerate(self.valid_loader):
                 data = self.img_preprocess(data)  # resize input image size
                 data, target = data.to(self.device), target.to(self.device)
                 _, prediction = self.model(data)
-                mse = self.criterion(prediction, target)
-                psnr = 10 * log10(1 / mse.item())
+                #calculate psnr
+                mse = torch.mean(((prediction - target) ** 2), dim=[1, 2, 3])
+                psnr = -10 * mse.log10().mean().item()
                 avg_psnr += psnr
-                progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
+                #calculate niqe
+                niqe = np.mean(niqe_metric.niqe(prediction.permute(0, 2, 3, 1).cpu().numpy() * 255, RGB=True, video_params=False))
+                avg_niqe += niqe
+                progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.3f || NIQE: %.3f' % (avg_psnr / (batch_num + 1), avg_niqe / (batch_num + 1)))
 
         print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.valid_loader)))
 

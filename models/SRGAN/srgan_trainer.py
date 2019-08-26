@@ -6,20 +6,23 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 from torchvision.models.vgg import vgg16
+import numpy as np
 
 from trainer import Trainer
-from models.SRGAN.model import Generator, Discriminator
+# from models.SRGAN.model import Generator, Discriminator, DiffGenerator
+from models.SRGAN.model import Generator, Discriminator, AugmentedDiffGenerator as DiffGenerator
 from progress_bar import progress_bar
+from util import niqe_metric
 
 
 class SRGANTrainer(Trainer):
-    def __init__(self, config, training_loader, valid_loader):
-        super(SRGANTrainer, self).__init__(config, training_loader, valid_loader, "srgan")
+    def __init__(self, config, training_loader, valid_loader, diff):
+        super(SRGANTrainer, self).__init__(config, training_loader, valid_loader, "srgan", diff)
 
         # SRGAN setup
         self.epoch_pretrain = 10
         self.feature_extractor = None
-        self.num_residuals = 16
+        self.num_residuals = 1
         self.netG = None
         self.netD = None
         self.criterionG = None
@@ -28,11 +31,15 @@ class SRGANTrainer(Trainer):
         self.optimizerD = None
 
     def build_model(self):
-        self.netG = Generator(n_residual_blocks=self.num_residuals, upsample_factor=self.upscale_factor, base_filter=64,
-                              num_channels=3).to(self.device)
+        if self.diff:
+            self.netG = DiffGenerator(n_residual_blocks=self.num_residuals, upsample_factor=self.upscale_factor, base_filter=16,
+                                  num_channels=3).to(self.device)
+        else:
+            self.netG = Generator(n_residual_blocks=self.num_residuals, upsample_factor=self.upscale_factor, base_filter=64,
+                                  num_channels=3).to(self.device)
+            self.netG.weight_init(mean=0.0, std=0.2)
         self.netD = Discriminator(base_filter=64, num_channels=3).to(self.device)
         self.feature_extractor = vgg16(pretrained=True)
-        self.netG.weight_init(mean=0.0, std=0.2)
         self.netD.weight_init(mean=0.0, std=0.2)
         self.criterionG = nn.MSELoss()
         self.criterionD = nn.BCELoss()
@@ -119,15 +126,20 @@ class SRGANTrainer(Trainer):
     def valid(self):
         self.netG.eval()
         avg_psnr = 0
+        avg_niqe = 0
 
         with torch.no_grad():
             for batch_num, (data, target) in enumerate(self.valid_loader):
                 data, target = data.to(self.device), target.to(self.device)
                 prediction = self.netG(data)
-                mse = self.criterionG(prediction, target)
-                psnr = 10 * log10(1 / mse.item())
+                #calculate psnr
+                mse = torch.mean(((prediction - target) ** 2), dim=[1, 2, 3])
+                psnr = -10 * mse.log10().mean().item()
                 avg_psnr += psnr
-                progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.4f' % (avg_psnr / (batch_num + 1)))
+                #calculate niqe
+                niqe = np.mean(niqe_metric.niqe(prediction.permute(0, 2, 3, 1).cpu().numpy() * 255, RGB=True, video_params=False))
+                avg_niqe += niqe
+                progress_bar(batch_num, len(self.valid_loader), 'PSNR: %.3f || NIQE: %.3f' % (avg_psnr / (batch_num + 1), avg_niqe / (batch_num + 1)))
 
         print("    Average PSNR: {:.4f} dB".format(avg_psnr / len(self.valid_loader)))
 
@@ -136,9 +148,10 @@ class SRGANTrainer(Trainer):
     def run(self):
         best_psnr = 0
         self.build_model()
-        n_params = sum(map(lambda x: x.numel(), self.netG.parameters())) + sum(
-            map(lambda x: x.numel(), self.netD.parameters()))
-        print("    {} params".format(n_params))
+        g_params = sum(map(lambda x: x.numel(), self.netG.parameters()))
+        d_params = sum(map(lambda x: x.numel(), self.netD.parameters()))
+        print("    {} G params".format(g_params))
+        print("    {} D params".format(d_params))
         for epoch in range(1, self.epoch_pretrain + 1):
             self.pretrain()
             print("{}/{} pretrained".format(epoch, self.epoch_pretrain))
@@ -153,4 +166,5 @@ class SRGANTrainer(Trainer):
             self.scheduler.step(epoch)
 
         print("    Best Average PSNR: {:.3f} dB".format(best_psnr))
-        print("    {} params".format(n_params))
+        print("    {} G params".format(g_params))
+        print("    {} D params".format(d_params))
